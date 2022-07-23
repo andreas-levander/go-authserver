@@ -16,8 +16,6 @@ func AdminRoutes(router *gin.Engine) {
 }
 
 func users(c *gin.Context) {
-	database.GetUsers()
-	c.JSON(http.StatusOK, gin.H{
-		"message": "users-pong",
-	})
+	usrs := database.GetUsers()
+	c.JSON(http.StatusOK, usrs)
 }

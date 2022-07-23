@@ -7,6 +7,11 @@ require github.com/jackc/pgx/v4 v4.16.1
 require github.com/subosito/gotenv v1.4.0
 
 require (
+	github.com/georgysavva/scany v1.0.0
+	github.com/pkg/errors v0.9.1 // indirect
+)
+
+require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-playground/locales v0.14.0 // indirect
