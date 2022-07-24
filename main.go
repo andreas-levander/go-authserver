@@ -17,11 +17,16 @@ func main() {
 	router := gin.Default()
 
 	routes.PublicRoutes(router)
-	routes.AdminRoutes(router)
+	
+	db := database.Connect()
 
-	pool := database.ConnectToDatabase()
+	routes.Admin(router, db)
 
-	defer pool.Close()
+	//pool := database.Connect()
+
+	//env := &Env{db: pool}
+
+	//defer pool.Close()
 
 	
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")

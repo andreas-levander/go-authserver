@@ -7,15 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AdminRoutes(router *gin.Engine) {
+func Admin(router *gin.Engine, db *database.DB) {
 	admin := router.Group("/v1/admin")
 
 	{
-		admin.GET("/users", users)
+		admin.GET("/users", users(db))
 	}
 }
-
-func users(c *gin.Context) {
-	usrs := database.GetUsers()
-	c.JSON(http.StatusOK, usrs)
+func users(db *database.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		usrs := db.GetUsers()
+		c.JSON(http.StatusOK, usrs)
+	}
 }

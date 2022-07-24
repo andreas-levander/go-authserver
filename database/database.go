@@ -10,18 +10,21 @@ import (
 	"github.com/georgysavva/scany/pgxscan"
 )
 
-var dbpool *pgxpool.Pool
+//var dbpool *pgxpool.Pool
 
-func ConnectToDatabase() *pgxpool.Pool {
-	var err error
+type DB struct {
+	pool *pgxpool.Pool
+}
+
+func Connect() *DB{
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
-	dbpool, err = pgxpool.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	dbpool, err := pgxpool.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
 
-	return dbpool
+	return &DB{pool: dbpool}
 }
 
 type User struct {
@@ -30,9 +33,9 @@ type User struct {
 	Password_hash string
 }
 
-func GetUsers() []*User {
+func (db *DB) GetUsers() []*User {
 	var users []*User
-	err := pgxscan.Select(context.Background(), dbpool, &users, `SELECT * FROM users`)
+	err := pgxscan.Select(context.Background(), db.pool, &users, `SELECT * FROM users`)
 	
 	for i, u := range users {
 		fmt.Println(i, *u)
