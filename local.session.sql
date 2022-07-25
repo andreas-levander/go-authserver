@@ -1,1 +1,1 @@
-SELECT * from users
+INSERT INTO users (username, password_hash, roles) VALUES ('John Mclane', 'asdsadkeltllsas', '{"admin","user"}'), ('Jack Ryan', 'esjsjgjkglslsl', '{"user"}');

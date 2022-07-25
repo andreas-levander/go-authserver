@@ -29,8 +29,9 @@ func Connect() *DB{
 
 type User struct {
 	User_id int
-	Name string
+	Username string
 	Password_hash string
+	Roles []string
 }
 
 func (db *DB) GetUsers() []*User {
@@ -41,9 +42,17 @@ func (db *DB) GetUsers() []*User {
 		fmt.Println(i, *u)
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "SELECT failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "GetUsers failed: %v\n", err)
 	}
 
 	return users
 
+}
+
+func (db *DB) AddUser(user User) {
+	_, err := db.pool.Exec(context.Background(), `INSERT INTO users (username, password_hash, roles) VALUES ($1, $2, $3::text[])`, "test1", "asdddsadsa", []string{"admin"})
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "AddUser failed: %v\n", err)
+	}
 }
