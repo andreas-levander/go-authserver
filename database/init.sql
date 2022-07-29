@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
   user_id SERIAL PRIMARY KEY,
   username varchar(50) NOT NULL UNIQUE,
-  password_hash varchar(250) NOT NULL,
+  password_hash char(60) NOT NULL,
   roles text ARRAY
 );
 

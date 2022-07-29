@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 
 	"go-test/routes"
+	"go-test/tokens"
 
 	"go-test/database"
 
@@ -21,6 +24,14 @@ func main() {
 	db := database.Connect()
 
 	routes.Admin(router, db)
+
+	tokens.CreateKeys()
+	token := tokens.CreateToken()
+	claims, ok := tokens.ValidateToken(token)
+
+	fmt.Println(claims.User, claims.Roles)
+	fmt.Println(ok)
+
 
 	//pool := database.Connect()
 

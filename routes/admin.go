@@ -26,7 +26,7 @@ func users(db *database.DB) gin.HandlerFunc {
 	}
 }
 
-type createUserRequest struct {
+type CreateUserRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password"`
 	Roles []string `json:"roles" binding:"required"`
@@ -35,7 +35,7 @@ type createUserRequest struct {
 
 func createUser(db *database.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var body createUserRequest
+		var body CreateUserRequest
 		if err := c.ShouldBindJSON(&body); err != nil {
 			fmt.Fprintf(os.Stderr, "failed getting body params: %v\n", err)
 			c.AbortWithStatusJSON(400, gin.H{
@@ -50,12 +50,26 @@ func createUser(db *database.DB) gin.HandlerFunc {
 			fmt.Fprintf(os.Stderr, "failed hashing password: %v\n", cErr)
 		}
 
-		fmt.Println(pwHash)
-
-		pErr := bcrypt.CompareHashAndPassword(pwHash, []byte(body.Password))
-		if pErr != nil {
-			fmt.Fprintf(os.Stderr, "wrong pass: %v\n", cErr)
+		fmt.Println(string(pwHash))
+		fmt.Println(len(string(pwHash)))
+		newUser := database.User{
+			User_id: 0,
+			Username: body.Username,
+			Password_hash: string(pwHash),
+			Roles: body.Roles,
 		}
-		//db.AddUser()
+
+		// pErr := bcrypt.CompareHashAndPassword(pwHash, []byte(body.Password))
+		// if pErr != nil {
+		// 	fmt.Fprintf(os.Stderr, "wrong pass: %v\n", cErr)
+		// }
+		
+		if err := db.AddUser(newUser); err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"database error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{ "message": "added new user: " + newUser.Username })
 	}
 }
