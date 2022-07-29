@@ -49,6 +49,21 @@ func (db *DB) GetUsers() []*User {
 
 }
 
+func (db *DB) GetUser(username string) []*User {
+	var user []*User
+	err := pgxscan.Select(context.Background(), db.pool, &user, `SELECT * FROM users WHERE username=$1`, username)
+	
+	// for i, u := range users {
+	// 	fmt.Println(i, *u)
+	// }
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "GetUsers failed: %v\n", err)
+	}
+
+	return user
+
+}
+
 func (db *DB) AddUser(user User) error {
 	_, err := db.pool.Exec(context.Background(), `INSERT INTO users (username, password_hash, roles) VALUES ($1, $2, $3::text[])`, user.Username, user.Password_hash, user.Roles)
 

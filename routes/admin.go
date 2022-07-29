@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"go-test/config"
 	"go-test/database"
 	"net/http"
 	"os"
@@ -11,17 +12,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Admin(router *gin.Engine, db *database.DB) {
+func Admin(router *gin.Engine, env *config.Env) {
 	admin := router.Group("/v1/admin")
 
 	{
-		admin.GET("/users", users(db))
-		admin.POST("/createuser", createUser(db))
+		admin.GET("/users", users(env))
+		admin.POST("/createuser", createUser(env))
 	}
 }
-func users(db *database.DB) gin.HandlerFunc {
+func users(env *config.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		usrs := db.GetUsers()
+		usrs := env.DB.GetUsers()
 		c.JSON(http.StatusOK, usrs)
 	}
 }
@@ -30,10 +31,9 @@ type CreateUserRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password"`
 	Roles []string `json:"roles" binding:"required"`
-
 }
 
-func createUser(db *database.DB) gin.HandlerFunc {
+func createUser(env *config.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body CreateUserRequest
 		if err := c.ShouldBindJSON(&body); err != nil {
@@ -58,13 +58,8 @@ func createUser(db *database.DB) gin.HandlerFunc {
 			Password_hash: string(pwHash),
 			Roles: body.Roles,
 		}
-
-		// pErr := bcrypt.CompareHashAndPassword(pwHash, []byte(body.Password))
-		// if pErr != nil {
-		// 	fmt.Fprintf(os.Stderr, "wrong pass: %v\n", cErr)
-		// }
 		
-		if err := db.AddUser(newUser); err != nil {
+		if err := env.DB.AddUser(newUser); err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"database error": err.Error(),
 			})

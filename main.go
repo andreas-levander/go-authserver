@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 
+	"go-test/config"
 	"go-test/routes"
 	"go-test/tokens"
 
@@ -19,25 +18,10 @@ func main() {
 
 	router := gin.Default()
 
-	routes.PublicRoutes(router)
-	
-	db := database.Connect()
+	env := &config.Env{DB: database.Connect(), Token: tokens.CreateKeys()}
 
-	routes.Admin(router, db)
-
-	tokens.CreateKeys()
-	token := tokens.CreateToken()
-	claims, ok := tokens.ValidateToken(token)
-
-	fmt.Println(claims.User, claims.Roles)
-	fmt.Println(ok)
-
-
-	//pool := database.Connect()
-
-	//env := &Env{db: pool}
-
-	//defer pool.Close()
+	routes.Admin(router, env)
+	routes.Public(router, env)
 
 	
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")

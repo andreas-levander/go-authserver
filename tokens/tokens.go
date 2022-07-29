@@ -8,18 +8,18 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var keys struct {
-	publicKey ed25519.PublicKey
-	privateKey ed25519.PrivateKey
+type Keys struct {
+	publicKey *ed25519.PublicKey
+	privateKey *ed25519.PrivateKey
 }
 
-func CreateKeys() {
-	var err error
-	keys.publicKey, keys.privateKey, err = ed25519.GenerateKey(nil)
+func CreateKeys() *Keys{
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		fmt.Printf("error generating key %v\n", err)
 		panic(err)
 	}
+	return &Keys{&publicKey, &privateKey}
 }
 
 type customClaims struct {
@@ -27,22 +27,21 @@ type customClaims struct {
 	jwt.RegisteredClaims
 }
 
-func CreateToken() string {
-	
-
+func (keys *Keys) Create(username string, roles []string) string {
 	// Create the Claims
 	claims := customClaims{
-		[]string{"user"},
+		roles,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),
 			IssuedAt: jwt.NewNumericDate(time.Now()),
-			Issuer:    "test",
-			Subject: "lol",
+			Issuer:    "go-authserver",
+			Subject: username,
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
 
-	ss, sErr := token.SignedString(keys.privateKey)
+	ss, sErr := token.SignedString(*keys.privateKey)
+
 	if sErr != nil {
 		fmt.Printf("error signing key %v\n", sErr)
 	}
@@ -55,7 +54,7 @@ type returnedClaims struct {
 	Roles []string
 }
 
-func ValidateToken(tokenString string) (claims returnedClaims, ok bool) {
+func (keys *Keys) Validate(tokenString string) (claims returnedClaims, ok bool) {
 	token, err := jwt.ParseWithClaims(tokenString, &customClaims{}, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodEd25519); !ok {
@@ -65,7 +64,7 @@ func ValidateToken(tokenString string) (claims returnedClaims, ok bool) {
 			return nil, fmt.Errorf("error validating claims")
 		}
 
-		return keys.publicKey, nil
+		return *keys.publicKey, nil
 	})
 	if err != nil {
 		fmt.Printf("error verifying key: %v\n", err)
