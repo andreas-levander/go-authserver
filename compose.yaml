@@ -7,3 +7,12 @@ services:
       - "5432:5432"
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+  go-authserver:
+    depends_on:
+      - database
+    build: ./
+    environment:
+      - DATABASE_URL=postgres://postgres:password@database:5432/postgres
+      - GIN_MODE=release
+    ports:
+      - "8080:8080"

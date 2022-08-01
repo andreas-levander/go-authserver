@@ -1,0 +1,5 @@
+.env
+.gitignore
+*.sql
+vscode
+compose.yaml
