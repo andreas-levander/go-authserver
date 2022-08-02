@@ -13,7 +13,7 @@ import (
 
 
 func main() {
-	cfg := config.Setup()
+	cfg := config.Load("./")
 
 	router := gin.Default()
 

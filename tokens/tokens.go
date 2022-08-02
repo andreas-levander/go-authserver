@@ -8,6 +8,11 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+type Tokens interface {
+	Create(username string, roles []string, token_ttl int) string
+	Validate(tokenString string) (claims returnedClaims, ok bool)
+}
+
 type Keys struct {
 	publicKey *ed25519.PublicKey
 	privateKey *ed25519.PrivateKey
