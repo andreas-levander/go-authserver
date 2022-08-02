@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 
@@ -25,5 +27,8 @@ func main() {
 	routes.Public(v1, env)
 
 	
-	router.Run(":" + viper.GetString("PORT")) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	if err := router.Run(":" + viper.GetString("PORT")); err != nil {
+		fmt.Println("error running server" + err.Error())
+	}
+
 }

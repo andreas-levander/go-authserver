@@ -28,7 +28,9 @@ func Load(path string) *config {
 	viper.SetDefault("PORT", 4000)
 	viper.SetDefault("TOKEN_TTL", 15)
 
-	viper.BindEnv("DATABASE_URL")
+	if err := viper.BindEnv("DATABASE_URL"); err != nil {
+		fmt.Println("No database url found" + err.Error())
+	}
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
