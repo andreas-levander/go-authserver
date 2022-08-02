@@ -27,7 +27,7 @@ type customClaims struct {
 	jwt.RegisteredClaims
 }
 
-func (keys *Keys) Create(username string, roles []string) string {
+func (keys *Keys) Create(username string, roles []string, token_ttl int) string {
 	// Create the Claims
 	claims := customClaims{
 		roles,
@@ -43,7 +43,7 @@ func (keys *Keys) Create(username string, roles []string) string {
 	ss, sErr := token.SignedString(*keys.privateKey)
 
 	if sErr != nil {
-		fmt.Printf("error signing key %v\n", sErr)
+		panic("error sigining token: " + sErr.Error())
 	}
 	
 	return ss

@@ -16,9 +16,9 @@ type DB struct {
 	pool *pgxpool.Pool
 }
 
-func Connect() *DB{
+func Connect(DB_URL string) *DB{
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
-	dbpool, err := pgxpool.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	dbpool, err := pgxpool.Connect(context.Background(), DB_URL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)

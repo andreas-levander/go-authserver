@@ -2,23 +2,22 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 
 	"go-test/config"
 	"go-test/routes"
 	"go-test/tokens"
 
 	"go-test/database"
-
-	"github.com/subosito/gotenv"
 )
 
 
 func main() {
-	gotenv.Load()
+	cfg := config.Setup()
 
 	router := gin.Default()
 
-	env := &config.Env{DB: database.Connect(), Token: tokens.CreateKeys()}
+	env := &config.Env{DB: database.Connect(cfg.DB_URL), Token: tokens.CreateKeys(), Config: cfg}
 
 	v1 := router.Group("/v1")
 
@@ -26,5 +25,5 @@ func main() {
 	routes.Public(v1, env)
 
 	
-	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	router.Run(":" + viper.GetString("PORT")) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

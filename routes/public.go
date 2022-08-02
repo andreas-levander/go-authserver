@@ -60,7 +60,7 @@ func login(env *config.Env) gin.HandlerFunc {
 		}
 		
 		c.JSON(200, gin.H{
-			"token": env.Token.Create(user.Username, user.Roles),
+			"token": env.Token.Create(user.Username, user.Roles, env.Config.TOKEN_TTL),
 		})
 	}
 }
