@@ -6,7 +6,9 @@ require github.com/jackc/pgx/v4 v4.16.1
 
 require github.com/subosito/gotenv v1.4.0
 
-require github.com/golang-jwt/jwt/v4 v4.4.2 // 
+require golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
+
+require github.com/golang-jwt/jwt/v4 v4.4.2 //
 
 require (
 	github.com/georgysavva/scany v1.0.0

@@ -20,8 +20,10 @@ func main() {
 
 	env := &config.Env{DB: database.Connect(), Token: tokens.CreateKeys()}
 
-	routes.Admin(router, env)
-	routes.Public(router, env)
+	v1 := router.Group("/v1")
+
+	routes.Admin(v1, env)
+	routes.Public(v1, env)
 
 	
 	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")

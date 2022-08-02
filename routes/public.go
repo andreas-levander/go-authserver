@@ -11,8 +11,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Public(router *gin.Engine, env *config.Env) {
-	public := router.Group("/v1/public")
+func Public(router *gin.RouterGroup, env *config.Env) {
+	public := router.Group("/public")
 
 	{
 		public.GET("/ping", ping)
