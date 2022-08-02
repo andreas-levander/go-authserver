@@ -1,2 +1,4 @@
 .vscode
 *.env
+local.session.sql
+.DS_STORE
