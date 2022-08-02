@@ -2,8 +2,9 @@ package config
 
 import (
 	"fmt"
-	"go-test/database"
-	"go-test/tokens"
+
+	"github.com/andreas-levander/go-authserver/database"
+	"github.com/andreas-levander/go-authserver/tokens"
 
 	"github.com/spf13/viper"
 )

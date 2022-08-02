@@ -1,4 +1,4 @@
-module go-test
+module github.com/andreas-levander/go-authserver
 
 go 1.18
 

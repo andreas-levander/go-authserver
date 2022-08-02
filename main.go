@@ -6,11 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 
-	"go-test/config"
-	"go-test/routes"
-	"go-test/tokens"
+	"github.com/andreas-levander/go-authserver/config"
+	"github.com/andreas-levander/go-authserver/routes"
+	"github.com/andreas-levander/go-authserver/tokens"
 
-	"go-test/database"
+	"github.com/andreas-levander/go-authserver/database"
 )
 
 

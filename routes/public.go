@@ -2,10 +2,11 @@ package routes
 
 import (
 	"fmt"
-	"go-test/config"
-	"go-test/database"
 	"net/http"
 	"os"
+
+	"github.com/andreas-levander/go-authserver/config"
+	"github.com/andreas-levander/go-authserver/database"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
