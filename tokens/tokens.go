@@ -2,12 +2,14 @@ package tokens
 
 import (
 	"crypto/ed25519"
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 type Tokens interface {
@@ -42,66 +44,56 @@ func CreateKeys() *Keys{
 	return &Keys{&publicKey, &privateKey}
 }
 
-type customClaims struct {
-	Roles []string `json:"roles"`
-	Kid string `json:"kid"`
-	jwt.RegisteredClaims
-}
 
 func (keys *Keys) Create(username string, roles []string, token_ttl int) string {
 	privateKey := *keys.privateKey
-	var rawPrivateKey ed25519.PrivateKey
-	if err := privateKey.Raw(&rawPrivateKey); err != nil {
-		panic("failed to get raw key" + err.Error())
-	}
-	// Create the Claims
-	claims := customClaims{
-		roles,
-		privateKey.KeyID(),
-		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * time.Duration(token_ttl))),
-			IssuedAt: jwt.NewNumericDate(time.Now()),
-			Issuer:    "go-authserver",
-			Subject: username,
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
 
-	ss, sErr := token.SignedString(rawPrivateKey)
+	token, err := jwt.NewBuilder().
+				Claim("roles", roles).
+				Claim("kid", privateKey.KeyID()).
+				Issuer("go-authserver").
+				IssuedAt(time.Now()).
+				Expiration(time.Now().Add(time.Minute * time.Duration(token_ttl))).
+				Subject(username).
+				Build()
 
-	if sErr != nil {
-		panic("error sigining token: " + sErr.Error())
+	if err != nil {
+		panic("failed creating token" + err.Error())
+	}
+
+	  // Sign a JWT!
+	signed, err := jwt.Sign(token, jwt.WithKey(jwa.EdDSA, privateKey))
+	if err != nil {
+		fmt.Printf("failed to sign token: %s\n", err)
+		return ""
 	}
 	
-	return ss
+	return string(signed)
 }
 
 type returnedClaims struct {
-	User string
-	Roles []string
+	User string `json:"sub"`
+	Roles []string `json:"roles"`
 }
 
 func (keys *Keys) Validate(tokenString string) (claims returnedClaims, ok bool) {
-	token, err := jwt.ParseWithClaims(tokenString, &customClaims{}, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodEd25519); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		if vErr := token.Claims.Valid(); vErr != nil {
-			return nil, fmt.Errorf("error validating claims")
-		}
-
-		return *keys.publicKey, nil
-	})
+	verifiedToken, err := jwt.Parse([]byte(tokenString), jwt.WithKey(jwa.EdDSA, *keys.publicKey), jwt.WithValidate(true))
 	if err != nil {
-		fmt.Printf("error verifying key: %v\n", err)
+		fmt.Printf("failed to verify JWS: %s\n", err)
 		return returnedClaims{}, false
 	}
-
-	if claims, ok := token.Claims.(*customClaims); ok && token.Valid {
-		return returnedClaims{claims.Subject, claims.Roles}, true
+	jsonm, err := json.Marshal(verifiedToken)
+	if err != nil {
+		fmt.Println("error marshaling token: " + err.Error())
+		return returnedClaims{}, false
 	}
-	return returnedClaims{}, false
+	var Rclaims returnedClaims
+	if err := json.Unmarshal(jsonm, &Rclaims); err != nil {
+		fmt.Println("error unmarshaling token: " + err.Error())
+		return returnedClaims{}, false
+	}
+	
+	return Rclaims, true
 }
 
 func (keys *Keys) PublicKey() *jwk.Key {
