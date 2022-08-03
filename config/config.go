@@ -26,7 +26,7 @@ func Load(path string) *config {
 	viper.SetConfigName("authserver")
 	viper.SetConfigType("env")
 
-	viper.SetDefault("PORT", 4000)
+	viper.SetDefault("PORT", 8080)
 	viper.SetDefault("TOKEN_TTL", 15)
 
 	if err := viper.BindEnv("DATABASE_URL"); err != nil {

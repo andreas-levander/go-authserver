@@ -6,38 +6,60 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 type Tokens interface {
 	Create(username string, roles []string, token_ttl int) string
 	Validate(tokenString string) (claims returnedClaims, ok bool)
+	PublicKey() *jwk.Key
 }
 
 type Keys struct {
-	publicKey *ed25519.PublicKey
-	privateKey *ed25519.PrivateKey
+	publicKey *jwk.Key
+	privateKey *jwk.Key
 }
 
 func CreateKeys() *Keys{
-	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	kid := uuid.New()
+
+	rawPublicKey, rawPrivateKey, err := ed25519.GenerateKey(nil)
 	if err != nil {
-		fmt.Printf("error generating key %v\n", err)
-		panic(err)
+		fmt.Println("failed to create keys")
 	}
+	privateKey, err := jwk.FromRaw(rawPrivateKey)
+	if err != nil {
+		panic("failed to import key from raw: " + err.Error())
+	}
+	publicKey, err := jwk.FromRaw(rawPublicKey)
+	if err != nil {
+		panic("failed to import key from raw: " + err.Error())
+	}
+	privateKey.Set(jwk.KeyIDKey, kid.String())
+	publicKey.Set(jwk.KeyIDKey, kid.String())
+
 	return &Keys{&publicKey, &privateKey}
 }
 
 type customClaims struct {
 	Roles []string `json:"roles"`
+	Kid string `json:"kid"`
 	jwt.RegisteredClaims
 }
 
 func (keys *Keys) Create(username string, roles []string, token_ttl int) string {
+	privateKey := *keys.privateKey
+	var rawPrivateKey ed25519.PrivateKey
+	if err := privateKey.Raw(&rawPrivateKey); err != nil {
+		panic("failed to get raw key" + err.Error())
+	}
 	// Create the Claims
 	claims := customClaims{
 		roles,
+		privateKey.KeyID(),
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * time.Duration(token_ttl))),
 			IssuedAt: jwt.NewNumericDate(time.Now()),
 			Issuer:    "go-authserver",
 			Subject: username,
@@ -45,7 +67,7 @@ func (keys *Keys) Create(username string, roles []string, token_ttl int) string 
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
 
-	ss, sErr := token.SignedString(*keys.privateKey)
+	ss, sErr := token.SignedString(rawPrivateKey)
 
 	if sErr != nil {
 		panic("error sigining token: " + sErr.Error())
@@ -80,4 +102,8 @@ func (keys *Keys) Validate(tokenString string) (claims returnedClaims, ok bool) 
 		return returnedClaims{claims.Subject, claims.Roles}, true
 	}
 	return returnedClaims{}, false
+}
+
+func (keys *Keys) PublicKey() *jwk.Key {
+	return keys.publicKey
 }

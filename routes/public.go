@@ -7,6 +7,7 @@ import (
 
 	"github.com/andreas-levander/go-authserver/config"
 	"github.com/andreas-levander/go-authserver/database"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +19,7 @@ func Public(router *gin.RouterGroup, env *config.Env) {
 	{
 		public.GET("/ping", ping)
 		public.POST("/login", login(env))
+		public.GET("/validate", validate(env))
 	}
 }
 
@@ -70,4 +72,10 @@ func ping(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "pong",
 	})
+}
+func validate(env *config.Env) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		key := env.Token.PublicKey()
+		c.JSON(http.StatusOK, gin.H{ "keys": []jwk.Key{*key}})
+	}
 }

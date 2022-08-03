@@ -5,13 +5,22 @@ go 1.18
 require github.com/jackc/pgx/v4 v4.16.1
 
 require (
+	github.com/google/uuid v1.3.0
 	github.com/spf13/viper v1.12.0
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 
+require github.com/lestrrat-go/jwx/v2 v2.0.4
+
 require (
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
+	github.com/lestrrat-go/httpcc v1.0.1 // indirect
+	github.com/lestrrat-go/httprc v1.0.4 // indirect
+	github.com/lestrrat-go/iter v1.0.2 // indirect
+	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
