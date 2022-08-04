@@ -3,6 +3,7 @@ package tokens
 import (
 	"crypto/ed25519"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -23,25 +24,30 @@ type Keys struct {
 	privateKey *jwk.Key
 }
 
-func CreateKeys() *Keys{
+func CreateKeys() (*Keys, error){
 	kid := uuid.New()
 
 	rawPublicKey, rawPrivateKey, err := ed25519.GenerateKey(nil)
 	if err != nil {
-		fmt.Println("failed to create keys")
+		return &Keys{}, errors.New("failed generating keys: " + err.Error())
 	}
 	privateKey, err := jwk.FromRaw(rawPrivateKey)
 	if err != nil {
-		panic("failed to import key from raw: " + err.Error())
+		return &Keys{}, errors.New("failed parsing private key: " + err.Error())
 	}
 	publicKey, err := jwk.FromRaw(rawPublicKey)
 	if err != nil {
-		panic("failed to import key from raw: " + err.Error())
+		return &Keys{}, errors.New("failed parsing public key: " + err.Error())
 	}
-	privateKey.Set(jwk.KeyIDKey, kid.String())
-	publicKey.Set(jwk.KeyIDKey, kid.String())
+	if err:= privateKey.Set(jwk.KeyIDKey, kid.String()); err != nil {
+		return &Keys{}, errors.New("can not set field kid in privatekey: " + err.Error())
 
-	return &Keys{&publicKey, &privateKey}
+	}
+	if err := publicKey.Set(jwk.KeyIDKey, kid.String()); err != nil {
+		return &Keys{}, errors.New("can not set field kid in publickey: " + err.Error())
+	}
+
+	return &Keys{&publicKey, &privateKey}, nil
 }
 
 

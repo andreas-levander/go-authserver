@@ -35,7 +35,7 @@ func Load(path string) *config {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Viper error reading config: " + err.Error())
+		fmt.Println("config not loaded: " + err.Error())
 	}
 
 	var cfg config
