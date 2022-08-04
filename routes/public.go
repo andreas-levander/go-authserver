@@ -33,7 +33,7 @@ func login(env *config.Env) gin.HandlerFunc {
 		var body loginRequest
 		if err := c.ShouldBindJSON(&body); err != nil {
 			fmt.Fprintf(os.Stderr, "failed getting body params: %v\n", err)
-			c.AbortWithStatusJSON(400, gin.H{
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "missing params",
 			})
 			return
@@ -45,7 +45,7 @@ func login(env *config.Env) gin.HandlerFunc {
 		var user *database.User
 
 		if len(userDB) < 1 {
-			c.AbortWithStatusJSON(404, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "incorrect username or password",
 			})
 			return
@@ -56,14 +56,19 @@ func login(env *config.Env) gin.HandlerFunc {
 		pErr := bcrypt.CompareHashAndPassword([]byte(user.Password_hash), []byte(body.Password))
 		if pErr != nil {
 			fmt.Fprintf(os.Stderr, "wrong pass: %v\n", pErr)
-			c.AbortWithStatusJSON(404, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "incorrect username or password",
 			})
 			return
 		}
-		
+		token, err := env.Token.Create(user.Username, user.Roles, env.Config.TOKEN_TTL)
+		if err != nil {
+			fmt.Println("failed token create: " + err.Error())
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
 		c.JSON(200, gin.H{
-			"token": env.Token.Create(user.Username, user.Roles, env.Config.TOKEN_TTL),
+			"token": token,
 		})
 	}
 }

@@ -31,7 +31,6 @@ func authMiddleware(env *config.Env) gin.HandlerFunc {
 		}
 		token := header[0][7:]
 		if claims, ok := env.Token.Validate(token); ok && slices.Contains(claims.Roles, "admin") {
-			fmt.Println(claims)
 			c.Set("user", claims.User)
 		} else {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{ "error": "unauthorized"})
@@ -39,7 +38,7 @@ func authMiddleware(env *config.Env) gin.HandlerFunc {
 		}
 	}
 }
-
+//for testing purposes
 func users(env *config.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		usrs := env.DB.GetUsers()
@@ -64,15 +63,12 @@ func createUser(env *config.Env) gin.HandlerFunc {
 			return
 
 		}
-		fmt.Println(body)
 		pwHash, cErr := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 		if cErr != nil {
 			fmt.Fprintf(os.Stderr, "failed hashing password: %v\n", cErr)
 			return
 		}
 
-		fmt.Println(string(pwHash))
-		fmt.Println(len(string(pwHash)))
 		newUser := database.User{
 			User_id: 0,
 			Username: body.Username,

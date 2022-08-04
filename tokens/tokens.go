@@ -14,7 +14,7 @@ import (
 )
 
 type Tokens interface {
-	Create(username string, roles []string, token_ttl int) string
+	Create(username string, roles []string, token_ttl int) (string, error)
 	Validate(tokenString string) (claims returnedClaims, ok bool)
 	PublicKey() *jwk.Key
 }
@@ -51,7 +51,7 @@ func CreateKeys() (*Keys, error){
 }
 
 
-func (keys *Keys) Create(username string, roles []string, token_ttl int) string {
+func (keys *Keys) Create(username string, roles []string, token_ttl int) (string, error) {
 	privateKey := *keys.privateKey
 
 	token, err := jwt.NewBuilder().
@@ -64,17 +64,16 @@ func (keys *Keys) Create(username string, roles []string, token_ttl int) string 
 				Build()
 
 	if err != nil {
-		panic("failed creating token" + err.Error())
+		return "", errors.New("failed to create token: " + err.Error())
 	}
 
 	  // Sign a JWT!
 	signed, err := jwt.Sign(token, jwt.WithKey(jwa.EdDSA, privateKey))
 	if err != nil {
-		fmt.Printf("failed to sign token: %s\n", err)
-		return ""
+		return "", errors.New("failed to sign token: " + err.Error())
 	}
 	
-	return string(signed)
+	return string(signed), nil
 }
 
 type returnedClaims struct {
