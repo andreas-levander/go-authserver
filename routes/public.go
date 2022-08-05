@@ -55,7 +55,6 @@ func login(env *config.Env) gin.HandlerFunc {
 
 		pErr := bcrypt.CompareHashAndPassword([]byte(user.Password_hash), []byte(body.Password))
 		if pErr != nil {
-			fmt.Fprintf(os.Stderr, "wrong pass: %v\n", pErr)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "incorrect username or password",
 			})
@@ -63,10 +62,11 @@ func login(env *config.Env) gin.HandlerFunc {
 		}
 		token, err := env.Token.Create(user.Username, user.Roles, env.Config.TOKEN_TTL)
 		if err != nil {
-			fmt.Println("failed token create: " + err.Error())
-			c.AbortWithError(http.StatusInternalServerError, err)
+			env.Logger.Errorf("failed to create token: %w", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+		env.Logger.Infof("%s logged in", user.Username)
 		c.JSON(200, gin.H{
 			"token": token,
 		})
@@ -81,6 +81,6 @@ func ping(c *gin.Context) {
 func validate(env *config.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := env.Token.PublicKey()
-		c.JSON(http.StatusOK, gin.H{ "keys": []jwk.Key{*key}})
+		c.JSON(http.StatusOK, gin.H{"keys": []jwk.Key{*key}})
 	}
 }

@@ -20,7 +20,7 @@ type DB struct {
 	pool *pgxpool.Pool
 }
 
-func Connect(DB_URL string) *DB{
+func Connect(DB_URL string) *DB {
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 	dbpool, err := pgxpool.Connect(context.Background(), DB_URL)
 	if err != nil {
@@ -32,16 +32,16 @@ func Connect(DB_URL string) *DB{
 }
 
 type User struct {
-	User_id int
-	Username string
+	User_id       int
+	Username      string
 	Password_hash string
-	Roles []string
+	Roles         []string
 }
 
 func (db *DB) GetUsers() []*User {
 	var users []*User
 	err := pgxscan.Select(context.Background(), db.pool, &users, `SELECT * FROM users`)
-	
+
 	// for i, u := range users {
 	// 	fmt.Println(i, *u)
 	// }
@@ -56,7 +56,7 @@ func (db *DB) GetUsers() []*User {
 func (db *DB) GetUser(username string) []*User {
 	var user []*User
 	err := pgxscan.Select(context.Background(), db.pool, &user, `SELECT * FROM users WHERE username=$1`, username)
-	
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "GetUsers failed: %v\n", err)
 	}

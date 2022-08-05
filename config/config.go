@@ -5,6 +5,7 @@ import (
 
 	"github.com/andreas-levander/go-authserver/database"
 	"github.com/andreas-levander/go-authserver/tokens"
+	"go.uber.org/zap"
 
 	"github.com/spf13/viper"
 )
@@ -13,6 +14,7 @@ type Env struct {
 	DB database.Database
 	Token tokens.Tokens
 	Config *config
+	Logger *zap.SugaredLogger
 }
 
 type config struct {

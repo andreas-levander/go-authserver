@@ -1,3 +1,4 @@
+// Responsible for creating and validating JWTs.
 package tokens
 
 import (
@@ -15,7 +16,7 @@ import (
 
 type Tokens interface {
 	Create(username string, roles []string, token_ttl int) (string, error)
-	Validate(tokenString string) (claims returnedClaims, ok bool)
+	Validate(tokenString string) (returnedClaims, bool)
 	PublicKey() *jwk.Key
 }
 
@@ -50,7 +51,7 @@ func CreateKeys() (*Keys, error){
 	return &Keys{&publicKey, &privateKey}, nil
 }
 
-
+// Creates a new JWT with claims.
 func (keys *Keys) Create(username string, roles []string, token_ttl int) (string, error) {
 	privateKey := *keys.privateKey
 
@@ -81,7 +82,8 @@ type returnedClaims struct {
 	Roles []string `json:"roles"`
 }
 
-func (keys *Keys) Validate(tokenString string) (claims returnedClaims, ok bool) {
+// Validates the token string and if valid returns claims.
+func (keys *Keys) Validate(tokenString string) (returnedClaims, bool) {
 	verifiedToken, err := jwt.Parse([]byte(tokenString), jwt.WithKey(jwa.EdDSA, *keys.publicKey), jwt.WithValidate(true))
 	if err != nil {
 		fmt.Printf("failed to verify JWS: %s\n", err)
